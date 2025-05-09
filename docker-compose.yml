@@ -56,21 +56,5 @@ services:
       cinema_db:
         condition: service_healthy
 
-  alembic_migrations:
-    build:
-      context: .
-      dockerfile: main_service/Dockerfile
-    command: >
-      sh -c "alembic upgrade head"
-    environment:
-      - DB_HOST=cinema_db
-      - DB_PORT=5432
-      - DB_NAME=cinema
-      - DB_USER=admin
-      - DB_PASSWORD=cinema
-    depends_on:
-      cinema_db:
-        condition: service_healthy
-
 volumes:
   cinema_data:

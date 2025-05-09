@@ -1,4 +1,16 @@
-docker-compose up -d
+как запустить:
+docker-compose up -d --build
+выполняем из корня проекта
+
+как прокинуть новую миграцию (если изменяли модельки)
+создаем новый терминал
+docker exec -it main_service alembic revision --autogenerate -m "Migration"
+для initial миграции
+docker exec -it main_service alembic upgrade head
+для прокидывания миграции
+
+
+полезные команды:
 alembic revision --autogenerate -m "Migration"
 alembic upgrade head
 
