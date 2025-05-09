@@ -12,7 +12,7 @@ class User(Base):
 
     username: Mapped[str_uniq]
     email: Mapped[str_uniq]
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    password: Mapped[str] = mapped_column(String(255), nullable=False)
 
     is_admin: Mapped[bool] = mapped_column(default=False, server_default=text('false'), nullable=False)
 
