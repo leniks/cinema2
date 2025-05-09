@@ -1,34 +1,12 @@
-from passlib.context import CryptContext
-
-from jose import jwt, JWTError
+from jose import jwt
 from datetime import datetime, timedelta, timezone
-from app.config import get_auth_data
-from app.services.users_service import UsersService
+from main_service.config import get_auth_data
 
 from fastapi import Request, HTTPException, status, Depends
-from app.services.users_service import UsersService
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
-def create_access_token(data: dict) -> str:
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(days=30)
-    to_encode.update({"exp": expire})
-    auth_data = get_auth_data()
-    encode_jwt = jwt.encode(to_encode, auth_data['secret_key'], algorithm=auth_data['algorithm'])
-    return encode_jwt
-
-async def authenticate_user_by_username(username: str, password: str):
-    user = await UsersService.get_user_by_username(username=username)
-    if not user or verify_password(plain_password=password, hashed_password=user.password) is False:
-        return None
-    return user
+from jose import jwt, JWTError
+from datetime import datetime, timezone
+from main_service.config import get_auth_data
+from main_service.services.users_service import UserService
 
 
 def get_token(request: Request):
@@ -54,7 +32,7 @@ async def get_current_user(token: str = Depends(get_token)):
     if not user_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Не найден ID пользователя')
 
-    user = await UsersService.get_user_by_id(int(user_id))
+    user = await UserService.get_user_or_none_by_id(int(user_id))
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
 

@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  cinema_db:
+    image: postgres:latest
+    container_name: cinema_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: cinema
+      POSTGRES_DB: cinema
+    ports:
+      - "5432:5432"
+    volumes:
+      - cinema_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d cinema"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  auth_service:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    container_name: auth_service
+    environment:
+      - DB_HOST=cinema_db
+      - DB_PORT=5432
+      - DB_NAME=cinema
+      - DB_USER=admin
+      - DB_PASSWORD=cinema
+      - SECRET_KEY=your-secret-key-here
+      - ALGORITHM=HS256
+    ports:
+      - "8000:8000"
+    depends_on:
+      cinema_db:
+        condition: service_healthy
+
+  main_service:
+    build:
+      context: .
+      dockerfile: main_service/Dockerfile
+    container_name: main_service
+    environment:
+      - DB_HOST=cinema_db
+      - DB_PORT=5432
+      - DB_NAME=cinema
+      - DB_USER=admin
+      - DB_PASSWORD=cinema
+      - SECRET_KEY=your-secret-key-here
+      - ALGORITHM=HS256
+    ports:
+      - "8001:8001"
+    depends_on:
+      cinema_db:
+        condition: service_healthy
+
+  alembic_migrations:
+    build:
+      context: .
+      dockerfile: main_service/Dockerfile
+    command: >
+      sh -c "alembic upgrade head"
+    environment:
+      - DB_HOST=cinema_db
+      - DB_PORT=5432
+      - DB_NAME=cinema
+      - DB_USER=admin
+      - DB_PASSWORD=cinema
+    depends_on:
+      cinema_db:
+        condition: service_healthy
+
+volumes:
+  cinema_data:

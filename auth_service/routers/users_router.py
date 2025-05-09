@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, status, Response, Depends
 
-from app.services.users_service import UsersService
-from app.schemas.User_schema import RegisterUser, AuthUser
-from app.services.auth_service import get_password_hash, authenticate_user_by_username, create_access_token, \
+from auth_service.services.users_service import UsersService
+from auth_service.schemas.User_schema import RegisterUser, AuthUser
+from auth_service.services.auth_service import get_password_hash, authenticate_user_by_username, create_access_token, \
     get_current_user
 
 router = APIRouter(prefix='/auth', tags=['Авторизация'])

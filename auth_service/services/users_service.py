@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.database import async_session_maker
-from app.models.User import User
+from auth_service.database import async_session_maker
+from auth_service.models.User import User
 
 
 class UsersService:
