@@ -20,6 +20,8 @@ class MovieService:
     @classmethod
     async def get_movie_or_none_by_id(cls, data_id: int):
         cache_key = f"movie_{data_id}"
+
+        await redis_client.publish("movie_cache_update", "updated cache message")
         
         cached_data = await redis_client.get(cache_key)
         if cached_data:
@@ -38,4 +40,5 @@ class MovieService:
                 )
                 print(f"Movie {data_id} cached")
             
+
             return movie
