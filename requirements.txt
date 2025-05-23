@@ -11,3 +11,6 @@ alembic~=1.14.0
 pandas~=2.2.3
 numpy~=2.2.0
 scikit-learn~=1.6.0
+redis~=5.0.0
+datetime~=5.1
+psycopg2-binary~=2.9.10

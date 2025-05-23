@@ -26,6 +26,10 @@ router = APIRouter(prefix='/movies', tags=['Работа с фильмами'])
 async def get_movies_by_parameters(request_body: RBMovie = Depends()) -> List[SMovie]:
     return await MovieService.get_movies_by_parameters(**request_body.to_dict())
 
+@router.get("/me")
+async def get_me(user_data: User = Depends(get_current_user)):
+    data = user_data.to_dict()
+    print(data)
 
 @router.get("/{id}", summary="Получить фильм по id")
 async def get_movie_or_none_by_id(id: int) -> SMovie | dict:

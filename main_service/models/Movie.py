@@ -8,6 +8,7 @@ from main_service.models.user_watchlist import user_watchlist
 
 from main_service.database import Base, str_uniq, str_null_true
 
+from datetime import datetime
 
 # Модель фильма
 class Movie(Base):
@@ -31,3 +32,15 @@ class Movie(Base):
                                                  secondary=user_watchlist,
                                                  back_populates="watchlists",
                                                  lazy='joined')
+    
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "release_date": self.release_date.isoformat() if self.release_date else None,
+            "duration": self.duration,
+            "rating": self.rating,
+            "movie_url": self.movie_url,
+        }
+    

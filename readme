@@ -5,7 +5,7 @@ docker-compose up -d --build
 как прокинуть новую миграцию (если изменяли модельки)
 создаем новый терминал
 docker exec -it main_service alembic revision --autogenerate -m "Migration"
-для initial миграции
+для создания миграции
 docker exec -it main_service alembic upgrade head
 для прокидывания миграции
 
@@ -22,4 +22,9 @@ docker-compose ps
 docker-compose logs kafka
 docker exec -it kafka kafka-topics --list --bootstrap-server kafka:9093
 
+docker exec -it cinema_redis redis-cli ping # проверка работы redis
 
+docker exec -it cinema_redis sh # переходим в терминал redis
+redis-cli # заходим в redis
+keys * # просмотр всех ключей в redis
+del * # удалить все ключи в redis

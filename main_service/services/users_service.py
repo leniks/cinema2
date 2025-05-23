@@ -7,7 +7,7 @@ from main_service.models.Genre import Genre
 from main_service.models.Movie import Movie
 
 from main_service.schemas.User_schema import EmailStr
-
+from main_service.cache_redis import redis_client
 
 class UserService:
 
@@ -24,3 +24,4 @@ class UserService:
             query = select(User).filter_by(id=user_id)
             result = await session.execute(query)
             return result.unique().scalar_one_or_none()
+
