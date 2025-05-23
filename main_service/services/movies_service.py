@@ -36,5 +36,6 @@ class MovieService:
                     json.dumps(movie.to_dict()),
                     ex=3600
                 )
+                print(f"Movie {data_id} cached")
             
             return movie

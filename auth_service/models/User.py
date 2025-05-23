@@ -11,3 +11,12 @@ class User(Base):
     email: Mapped[str_uniq]
 
     is_admin: Mapped[bool] = mapped_column(default=False, server_default=text('false'), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "is_admin": self.is_admin
+        }
+

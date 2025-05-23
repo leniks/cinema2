@@ -25,3 +25,11 @@ class User(Base):
                                                  secondary=user_watchlist,
                                                  back_populates="watchlists_users",
                                                  lazy='joined')
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "is_admin": self.is_admin
+        }
