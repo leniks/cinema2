@@ -35,6 +35,10 @@ services:
       - bootstrap.memory_lock=true
       - network.host=0.0.0.0
       - http.port=9200
+      - logger.level=ERROR
+      - logger.org.elasticsearch=ERROR
+      - logger.org.elasticsearch.cluster.service=ERROR
+      - logger.org.elasticsearch.discovery=ERROR
     ulimits:
       memlock:
         soft: -1
@@ -53,6 +57,11 @@ services:
       timeout: 10s
       retries: 5
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.12.1
@@ -60,12 +69,20 @@ services:
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - XPACK_SECURITY_ENABLED=false
+      - logging.root.level=error
+      - logging.root.appender.console.level=error
+      - logging.root.appender.file.level=error
     ports:
       - "5601:5601"
     depends_on:
       elasticsearch:
         condition: service_healthy
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   auth_service:
     build:
