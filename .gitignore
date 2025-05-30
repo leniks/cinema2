@@ -31,3 +31,6 @@ Thumbs.db
 # IDE файлы
 .idea/
 .vscode/
+
+collect_all_files_in_txt.py
+project_contents.txt

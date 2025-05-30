@@ -28,3 +28,14 @@ docker exec -it cinema_redis sh # переходим в терминал redis
 redis-cli # заходим в redis
 keys * # просмотр всех ключей в redis
 del * # удалить все ключи в redis
+
+
+LOG SERVICE
+где смотреть логи
+http://localhost:5601/app/management/data/index_management/indices/index_details?indexName=logs&tab=overview
+http://localhost:9200/_cat/indices?v
+http://localhost:9200/logs/_search?pretty
+визуализация - http://localhost:5601/app/discove и создать для logs
+протестировать попадание логов через редис
+docker exec -it cinema_redis redis-cli
+PUBLISH logs '{"service":"test","level":"info","message":"Test log"}'

@@ -66,20 +66,21 @@ class RedisListener:
     async def process_message(self, message):
         """Process received message and store in Elasticsearch"""
         try:
-            data = json.loads(message['data'])
-            log_entry = {
-                'timestamp': datetime.now().isoformat(),
-                'service': data.get('service', 'unknown'),
-                'level': data.get('level', 'info'),
-                'message': data.get('message', ''),
-                'metadata': data.get('metadata', {})
-            }
-            
-            await self.es_client.index(
-                index='logs',
-                document=log_entry
-            )
-            logger.info(f"Successfully stored log entry: {log_entry}")
+            if message["type"] == "message":
+                data = json.loads(message["data"])
+                log_entry = {
+                    'timestamp': datetime.now().isoformat(),
+                    'service': data.get('service', 'unknown'),
+                    'level': data.get('level', 'info'),
+                    'message': data.get('message', ''),
+                    'metadata': data.get('metadata', {})
+                }
+                
+                await self.es_client.index(
+                    index='logs',
+                    document=log_entry
+                )
+                logger.info(f"Successfully stored log entry: {log_entry}")
         except Exception as e:
             logger.error(f"Error storing log in Elasticsearch: {e}")
 
