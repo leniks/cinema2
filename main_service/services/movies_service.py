@@ -7,6 +7,11 @@ from main_service.models.Movie import Movie
 
 from main_service.cache_redis import redis_client
 import json
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class MovieService:
 
@@ -20,8 +25,18 @@ class MovieService:
     @classmethod
     async def get_movie_or_none_by_id(cls, data_id: int):
         cache_key = f"movie_{data_id}"
-
-        await redis_client.publish("movie_cache_update", "updated cache message")
+        
+        # ?????????? ????????? ? ?????? ?????
+        log_message = {
+            "service": "main_service",
+            "level": "info",
+            "message": f"Movie cache update for movie_id: {data_id}",
+            "metadata": {
+                "movie_id": data_id,
+                "action": "cache_update"
+            }
+        }
+        await redis_client.publish("logs", json.dumps(log_message))
         
         cached_data = await redis_client.get(cache_key)
         if cached_data:
@@ -38,7 +53,6 @@ class MovieService:
                     json.dumps(movie.to_dict()),
                     ex=3600
                 )
-                print(f"Movie {data_id} cached")
+                logger.info(f"Movie {data_id} cached")
             
-
             return movie
