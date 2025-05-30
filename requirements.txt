@@ -14,3 +14,5 @@ scikit-learn~=1.6.0
 redis~=5.0.0
 datetime~=5.1
 psycopg2-binary~=2.9.10
+aiohttp~=3.9.3
+elasticsearch~=8.12.1
