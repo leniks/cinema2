@@ -7,4 +7,10 @@ xpack.security.enabled: false
 http.cors.enabled: true
 http.cors.allow-origin: "*"
 http.cors.allow-methods: OPTIONS, HEAD, GET, POST, PUT, DELETE
-http.cors.allow-headers: X-Requested-With, X-Auth-Token, Content-Type, Content-Length, Authorization 
+http.cors.allow-headers: X-Requested-With, X-Auth-Token, Content-Type, Content-Length, Authorization
+
+# Настройки логирования
+logger.level: ERROR
+logger.org.elasticsearch: ERROR
+logger.org.elasticsearch.cluster.service: ERROR
+logger.org.elasticsearch.discovery: ERROR 
