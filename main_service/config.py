@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     KIBANA_HOST: str
     KIBANA_PORT: int
 
+    MINIO_ENDPOINT: str
+    MINIO_ACCESS_KEY: str
+    MINIO_SECRET_KEY: str
+    MINIO_BUCKET: str
+
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
     )
@@ -38,6 +43,7 @@ class Settings(BaseSettings):
         logger.info(f"REDIS_HOST: {self.REDIS_HOST}")
         logger.info(f"ELASTICSEARCH_HOST: {self.ELASTICSEARCH_HOST}")
         logger.info(f"KIBANA_HOST: {self.KIBANA_HOST}")
+        logger.info(f"MINIO_ENDPOINT: {self.MINIO_ENDPOINT}")
 
 
 settings = Settings()
@@ -65,4 +71,12 @@ def get_kibana_settings():
     return {
         "host": settings.KIBANA_HOST,
         "port": settings.KIBANA_PORT
+    }
+
+def get_minio_settings():
+    return {
+        "endpoint": settings.MINIO_ENDPOINT,
+        "access_key": settings.MINIO_ACCESS_KEY,
+        "secret_key": settings.MINIO_SECRET_KEY,
+        "bucket": settings.MINIO_BUCKET
     }

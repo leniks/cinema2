@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, text
 from main_service.database import async_session_maker
 
 from main_service.models.User import User
@@ -16,11 +16,53 @@ logger = logging.getLogger(__name__)
 class MovieService:
 
     @classmethod
+    async def get_all_movies_simple(cls):
+        """Простой метод для получения всех фильмов без relationships"""
+        async with async_session_maker() as session:
+            query = text("""
+                SELECT id, title, description, release_date, duration, rating, 
+                       movie_url, poster_url, trailer_url, created_at, updated_at
+                FROM movies 
+                ORDER BY id
+            """)
+            result = await session.execute(query)
+            rows = result.fetchall()
+            
+            logger.info(f"DEBUG: Found {len(rows)} movies")
+            if rows:
+                first_row = rows[0]
+                logger.info(f"DEBUG: First movie - ID: {first_row[0]}, Title: {first_row[1]}, Trailer: {first_row[8]}")
+            
+            # Преобразуем результаты в словари
+            movies = []
+            for row in rows:
+                movie_dict = {
+                    "id": row[0],
+                    "title": row[1],
+                    "description": row[2],
+                    "release_date": row[3].isoformat() if row[3] else None,
+                    "duration": row[4],
+                    "rating": row[5],
+                    "movie_url": row[6],
+                    "poster_url": row[7],
+                    "trailer_url": row[8],
+                    "created_at": row[9].isoformat() if row[9] else None,
+                    "updated_at": row[10].isoformat() if row[10] else None,
+                }
+                movies.append(movie_dict)
+            
+            logger.info(f"DEBUG: Returning {len(movies)} movies")
+            if movies:
+                logger.info(f"DEBUG: First movie dict - trailer_url: {movies[0].get('trailer_url')}")
+            
+            return movies
+
+    @classmethod
     async def get_movies_by_parameters(cls, **filter_by):
         async with async_session_maker() as session:
             query = select(Movie).filter_by(**filter_by)
             result = await session.execute(query)
-            return result.unique().scalars().all()
+            return result.scalars().all()
 
     @classmethod
     async def get_movie_or_none_by_id(cls, data_id: int):
@@ -40,7 +82,9 @@ class MovieService:
         
         cached_data = await redis_client.get(cache_key)
         if cached_data:
-            return json.loads(cached_data)
+            # Возвращаем словарь напрямую, так как роутер ожидает объект Movie или dict
+            cached_dict = json.loads(cached_data)
+            return cached_dict
 
         async with async_session_maker() as session:
             query = select(Movie).filter_by(id=data_id)

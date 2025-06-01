@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Cinema - Фильмы с постерами</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #1a1a1a;
+                color: white;
+            }
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            h1 {
+                text-align: center;
+                color: #ff6b6b;
+                margin-bottom: 30px;
+            }
+            .movies-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 20px;
+                margin-top: 20px;
+            }
+            .movie-card {
+                background: #2a2a2a;
+                border-radius: 10px;
+                padding: 15px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                transition: transform 0.3s ease;
+            }
+            .movie-card:hover {
+                transform: translateY(-5px);
+            }
+            .movie-poster {
+                width: 100%;
+                height: 400px;
+                object-fit: cover;
+                border-radius: 8px;
+                margin-bottom: 10px;
+            }
+            .movie-title {
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 8px;
+                color: #ff6b6b;
+            }
+            .movie-description {
+                font-size: 14px;
+                color: #ccc;
+                margin-bottom: 10px;
+                line-height: 1.4;
+            }
+            .movie-info {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 10px;
+            }
+            .movie-rating {
+                background: #ff6b6b;
+                color: white;
+                padding: 4px 8px;
+                border-radius: 15px;
+                font-weight: bold;
+            }
+            .movie-year {
+                color: #888;
+            }
+            .loading {
+                text-align: center;
+                font-size: 18px;
+                margin: 50px 0;
+            }
+            .error {
+                text-align: center;
+                color: #ff6b6b;
+                font-size: 18px;
+                margin: 50px 0;
+            }
+            .stats {
+                background: #2a2a2a;
+                padding: 20px;
+                border-radius: 10px;
+                margin-bottom: 30px;
+                text-align: center;
+            }
+            .stats h2 {
+                color: #ff6b6b;
+                margin-bottom: 15px;
+            }
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+            }
+            .stat-item {
+                background: #1a1a1a;
+                padding: 15px;
+                border-radius: 8px;
+            }
+            .stat-number {
+                font-size: 24px;
+                font-weight: bold;
+                color: #ff6b6b;
+            }
+            .stat-label {
+                color: #ccc;
+                margin-top: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🎬 Cinema - Коллекция фильмов с постерами</h1>
+
+            <div class="stats">
+                <h2>📊 Статистика</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalMovies">-</div>
+                        <div class="stat-label">Всего фильмов</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="moviesWithPosters">-</div>
+                        <div class="stat-label">Фильмов с постерами</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="averageRating">-</div>
+                        <div class="stat-label">Средний рейтинг</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="s3Storage">9.45 MB</div>
+                        <div class="stat-label">Размер в S3</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loading" class="loading">Загрузка фильмов...</div>
+            <div id="error" class="error" style="display: none"></div>
+            <div id="moviesContainer" class="movies-grid"></div>
+        </div>
+
+        <script>
+            async function loadMovies() {
+                try {
+                    const response = await fetch("/movies/");
+                    if (!response.ok) {
+                        throw new Error(
+                            `HTTP error! status: ${response.status}`
+                        );
+                    }
+                    const movies = await response.json();
+
+                    document.getElementById("loading").style.display = "none";
+
+                    // Обновляем статистику
+                    const totalMovies = movies.length;
+                    const moviesWithPosters = movies.filter(
+                        (movie) => movie.poster_url
+                    ).length;
+                    const averageRating = (
+                        movies.reduce((sum, movie) => sum + movie.rating, 0) /
+                        totalMovies
+                    ).toFixed(1);
+
+                    document.getElementById("totalMovies").textContent =
+                        totalMovies;
+                    document.getElementById("moviesWithPosters").textContent =
+                        moviesWithPosters;
+                    document.getElementById("averageRating").textContent =
+                        averageRating;
+
+                    // Отображаем фильмы
+                    const container =
+                        document.getElementById("moviesContainer");
+
+                    // Сначала показываем фильмы с постерами
+                    const moviesWithPostersFirst = movies.sort((a, b) => {
+                        if (a.poster_url && !b.poster_url) return -1;
+                        if (!a.poster_url && b.poster_url) return 1;
+                        return b.rating - a.rating; // Сортируем по рейтингу
+                    });
+
+                    moviesWithPostersFirst.forEach((movie) => {
+                        const movieCard = document.createElement("div");
+                        movieCard.className = "movie-card";
+
+                        const posterUrl =
+                            movie.poster_url ||
+                            "https://via.placeholder.com/300x400/333/fff?text=No+Poster";
+                        const releaseYear = new Date(
+                            movie.release_date
+                        ).getFullYear();
+
+                        movieCard.innerHTML = `
+                        <img src="${posterUrl}" alt="${
+                            movie.title
+                        }" class="movie-poster" 
+                             onerror="this.src='https://via.placeholder.com/300x400/333/fff?text=No+Poster'">
+                        <div class="movie-title">${movie.title}</div>
+                        <div class="movie-description">${movie.description.substring(
+                            0,
+                            150
+                        )}${movie.description.length > 150 ? "..." : ""}</div>
+                        <div class="movie-info">
+                            <span class="movie-year">${releaseYear}</span>
+                            <span class="movie-rating">${movie.rating}/10</span>
+                        </div>
+                    `;
+
+                        container.appendChild(movieCard);
+                    });
+                } catch (error) {
+                    console.error("Error loading movies:", error);
+                    document.getElementById("loading").style.display = "none";
+                    document.getElementById("error").style.display = "block";
+                    document.getElementById(
+                        "error"
+                    ).textContent = `Ошибка загрузки фильмов: ${error.message}`;
+                }
+            }
+
+            // Загружаем фильмы при загрузке страницы
+            document.addEventListener("DOMContentLoaded", loadMovies);
+        </script>
+    </body>
+</html>
