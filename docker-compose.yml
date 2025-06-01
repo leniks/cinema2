@@ -195,6 +195,24 @@ services:
                 condition: service_healthy
         restart: unless-stopped
 
+    frontend:
+        build:
+            context: ./online-cinema-frontend-develop
+            dockerfile: Dockerfile
+        container_name: cinema_frontend
+        environment:
+            - REACT_APP_API_URL=http://localhost:8001
+            - REACT_APP_AUTH_URL=http://localhost:8000
+            - REACT_APP_MINIO_URL=http://localhost:9000
+            - REACT_APP_MINIO_BUCKET=cinema-files
+        ports:
+            - "3000:80"
+        depends_on:
+            - main_service
+            - auth_service
+            - minio
+        restart: unless-stopped
+
 volumes:
     cinema_data:
     redis_data:
