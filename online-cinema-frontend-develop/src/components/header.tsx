@@ -44,7 +44,7 @@ export const Header = () => {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
             <Link to="/" className="text-2xl font-bold text-primary">
-              Movie App
+              Absolute Cinema
             </Link>
             <nav className="hidden space-x-6 md:flex">
               <Link

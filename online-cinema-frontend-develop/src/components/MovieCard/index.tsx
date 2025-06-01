@@ -22,7 +22,7 @@ export const MovieCard = ({ movie, onClick }: MovieCardProps) => {
       }}
     >
       <Image
-        src={movie.poster_url || '/placeholder-poster.jpg'}
+        src={movie.poster_url || '/placeholder-poster.svg'}
         alt={movie.title}
         className="aspect-[2/3] w-full object-cover"
       />

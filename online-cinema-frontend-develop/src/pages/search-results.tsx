@@ -132,13 +132,13 @@ export const SearchResultsPage = () => {
             >
               <div className="relative aspect-[2/3] w-full">
                 <img
-                  src={movie.poster_url || '/placeholder-poster.jpg'}
+                  src={movie.poster_url || '/placeholder-poster.svg'}
                   alt={`Постер фильма ${movie.title}`}
                   className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
                   loading="lazy"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement
-                    target.src = '/placeholder-poster.jpg'
+                    target.src = '/placeholder-poster.svg'
                   }}
                 />
                 {movie.rating > 0 && (

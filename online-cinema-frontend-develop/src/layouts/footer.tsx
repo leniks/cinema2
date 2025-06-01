@@ -6,7 +6,7 @@ export const Footer = () => {
       <Container>
         <div className="flex flex-col items-center gap-4">
           <p className="text-sm text-gray-400">
-            © 2024 Movie App. Все права защищены.
+            © 2025 Absolute Cinema. All rights reserved.
           </p>
         </div>
       </Container>

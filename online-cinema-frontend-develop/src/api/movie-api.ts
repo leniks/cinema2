@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { Film } from '../interfaces'
-import { API_URL, AUTH_URL, getPosterUrl } from '../config/api.config'
+import { API_URL, AUTH_URL } from '../config/api.config'
 
 // const POSTER_CACHE_PREFIX = 'movie_poster_'
 // const POSTER_CACHE_EXPIRY = 24 * 60 * 60 * 1000 // 24 часа
@@ -137,14 +137,26 @@ addAuthInterceptor(authApi)
 
 // Функция преобразования данных нового бекенда в формат Film
 const convertBackendMovieToFilm = (movie: any): Film => {
+  // Если есть poster_url из S3, используем его, иначе генерируем fallback
+  let posterUrl = movie.poster_url
+  if (!posterUrl) {
+    posterUrl = `http://localhost:9000/cinema-files/movies/${movie.id}/poster.svg`
+  }
+
+  // Если есть trailer_url (backdrop) из S3, используем его, иначе генерируем fallback
+  let backdropUrl = movie.trailer_url
+  if (!backdropUrl) {
+    backdropUrl = `http://localhost:9000/cinema-files/movies/${movie.id}/backdrop.jpg`
+  }
+
   return {
     movie_id: movie.id,
     title: movie.title || '',
     description: movie.description || 'Описание отсутствует',
     release_date: movie.release_date || '',
     rating: movie.rating || 0,
-    poster_url: movie.poster_url || getPosterUrl(movie.id), // Используем прокси для постеров
-    backdrop_url: movie.trailer_url || null, // trailer_url содержит backdrop
+    poster_url: posterUrl,
+    backdrop_url: backdropUrl,
     video_url: movie.movie_url || '',
     duration: movie.duration || 0,
     genres: [], // В новом бекенде пока нет жанров в этом формате
@@ -295,16 +307,12 @@ export const MovieService = {
     }
   },
 
-  // Получение похожих фильмов (пока возвращаем случайные)
+  // Получение похожих фильмов
   async getSimilarMovies(movieId: number) {
     try {
-      console.warn('⚠️ Похожие фильмы пока не реализованы в новом бекенде')
-      const allMovies = await this.getMovies()
-      // Возвращаем случайные фильмы, исключая текущий
-      return allMovies
-        .filter((movie) => movie.movie_id !== movieId)
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 6)
+      const response = await mainApi.get<any[]>(`/movies/${movieId}/similar`)
+      const movies = await processMovies(response.data)
+      return movies.slice(0, 12) // Берем первые 12 похожих фильмов
     } catch (error) {
       console.error('❌ Error fetching similar movies:', error)
       return []
@@ -313,7 +321,7 @@ export const MovieService = {
 
   // Получение URL для стриминга
   getStreamUrl(movieId: string): string {
-    return `${API_URL}/movies/${movieId}/stream`
+    return `${API_URL}/streaming/${movieId}`
   },
 
   // Прелоадинг топ фильмов

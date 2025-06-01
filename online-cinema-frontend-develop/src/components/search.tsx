@@ -228,13 +228,13 @@ export const Search = () => {
               >
                 <div className="relative h-16 w-12 flex-shrink-0 overflow-hidden rounded-md">
                   <img
-                    src={movie.poster_url || '/placeholder-poster.jpg'}
+                    src={movie.poster_url || '/placeholder-poster.svg'}
                     alt={`Постер фильма ${movie.title}`}
                     className="h-full w-full object-cover"
                     loading="lazy"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement
-                      target.src = '/placeholder-poster.jpg'
+                      target.src = '/placeholder-poster.svg'
                     }}
                   />
                 </div>

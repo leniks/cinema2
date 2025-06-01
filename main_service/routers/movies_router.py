@@ -80,16 +80,160 @@ async def get_all_movies():
     movies = await MovieService.get_all_movies_simple()
     return movies
 
+@router.get("/test/{id}", summary="Тестовый endpoint для отладки")
+async def test_movie_data_alt(id: int):
+    """Тестовый endpoint для проверки данных фильма"""
+    async with async_session_maker() as session:
+        query = text("SELECT id, title, movie_url FROM movies WHERE id = :movie_id")
+        result = await session.execute(query, {"movie_id": id})
+        row = result.fetchone()
+        
+        if not row:
+            return {'message': f'Фильм с ID {id} не найден'}
+        
+        return {
+            "id": row[0],
+            "title": row[1],
+            "movie_url": row[2],
+            "note": "Это тестовый endpoint - ALT"
+        }
+
+@router.get("/{id}/similar", summary="Получить похожие фильмы")
+async def get_similar_movies(id: int):
+    """Получить фильмы, похожие на указанный"""
+    async with async_session_maker() as session:
+        # Получаем информацию о текущем фильме
+        current_movie_query = text("""
+            SELECT rating FROM movies WHERE id = :movie_id
+        """)
+        current_result = await session.execute(current_movie_query, {"movie_id": id})
+        current_row = current_result.fetchone()
+        
+        if not current_row:
+            return []
+        
+        current_rating = current_row[0]
+        
+        # Получаем уникальные похожие фильмы с приоритетом по рейтингу
+        similar_query = text("""
+            WITH similar_movies AS (
+                -- Сначала фильмы с точно таким же рейтингом
+                SELECT DISTINCT id, title, description, release_date, duration, rating, 
+                       movie_url, poster_url, trailer_url, created_at, updated_at, 1 as priority
+                FROM movies 
+                WHERE id != :movie_id AND rating = :current_rating
+                
+                UNION
+                
+                -- Затем фильмы с рейтингом ±1
+                SELECT DISTINCT id, title, description, release_date, duration, rating, 
+                       movie_url, poster_url, trailer_url, created_at, updated_at, 2 as priority
+                FROM movies 
+                WHERE id != :movie_id 
+                AND rating BETWEEN :min_rating AND :max_rating 
+                AND rating != :current_rating
+                
+                UNION
+                
+                -- Затем остальные фильмы
+                SELECT DISTINCT id, title, description, release_date, duration, rating, 
+                       movie_url, poster_url, trailer_url, created_at, updated_at, 3 as priority
+                FROM movies 
+                WHERE id != :movie_id 
+                AND rating NOT BETWEEN :min_rating AND :max_rating
+            )
+            SELECT id, title, description, release_date, duration, rating, 
+                   movie_url, poster_url, trailer_url, created_at, updated_at
+            FROM similar_movies
+            ORDER BY priority, RANDOM()
+            LIMIT 20
+        """)
+        
+        result = await session.execute(similar_query, {
+            "movie_id": id,
+            "current_rating": current_rating,
+            "min_rating": max(1, current_rating - 1),
+            "max_rating": min(10, current_rating + 1)
+        })
+        rows = result.fetchall()
+        
+        # Преобразуем результаты в словари с movie_id вместо id для совместимости с фронтендом
+        movies = []
+        for row in rows:
+            movie_dict = {
+                "movie_id": row[0],  # Используем movie_id для совместимости с фронтендом
+                "id": row[0],
+                "title": row[1],
+                "description": row[2],
+                "release_date": row[3].isoformat() if row[3] else None,
+                "duration": row[4],
+                "rating": row[5],
+                "movie_url": row[6],
+                "poster_url": row[7],
+                "trailer_url": row[8],
+                "created_at": row[9].isoformat() if row[9] else None,
+                "updated_at": row[10].isoformat() if row[10] else None,
+            }
+            movies.append(movie_dict)
+        
+        return movies
+
 @router.get("/{id}", summary="Получить фильм по id")
 async def get_movie_or_none_by_id(id: int):
-    result = await MovieService.get_movie_or_none_by_id(id)
-    if result is None:
-        return {'message': f'Фильм с ID {id} не найден'}
-    # Если это объект Movie, преобразуем в словарь
-    if hasattr(result, 'to_dict'):
-        return result.to_dict()
-    # Если это уже словарь (из кэша), возвращаем как есть
-    return result
+    """Получить фильм по ID с актуальными данными"""
+    print(f"DEBUG: Getting movie with ID {id}")
+    async with async_session_maker() as session:
+        query = text("""
+            SELECT id, title, description, release_date, duration, rating, 
+                   movie_url, poster_url, trailer_url, created_at, updated_at
+            FROM movies 
+            WHERE id = :movie_id
+        """)
+        result = await session.execute(query, {"movie_id": id})
+        row = result.fetchone()
+        
+        if not row:
+            return {'message': f'Фильм с ID {id} не найден'}
+        
+        # Отладочная информация
+        print(f"DEBUG: Raw movie_url from DB: {row[6]}")
+        print(f"DEBUG: All row data: {row}")
+        
+        movie_dict = {
+            "id": row[0],
+            "title": row[1],
+            "description": row[2],
+            "release_date": row[3].isoformat() if row[3] else None,
+            "duration": row[4],
+            "rating": row[5],
+            "movie_url": row[6],
+            "poster_url": row[7],
+            "trailer_url": row[8],
+            "created_at": row[9].isoformat() if row[9] else None,
+            "updated_at": row[10].isoformat() if row[10] else None,
+        }
+        
+        print(f"DEBUG: Movie dict movie_url: {movie_dict['movie_url']}")
+        
+        return movie_dict
+
+@router.get("/{id}/test", summary="Тестовый endpoint для отладки")
+async def test_movie_data(id: int):
+    """Тестовый endpoint для проверки данных фильма"""
+    async with async_session_maker() as session:
+        query = text("SELECT id, title, movie_url FROM movies WHERE id = :movie_id")
+        result = await session.execute(query, {"movie_id": id})
+        row = result.fetchone()
+        
+        if not row:
+            return {'message': f'Фильм с ID {id} не найден'}
+        
+        return {
+            "id": row[0],
+            "title": row[1],
+            "movie_url": row[2],
+            "note": "Это тестовый endpoint"
+        }
 
 @router.get("/watchlist/")
 async def get_watchlist(user_data: User = Depends(get_current_user)):

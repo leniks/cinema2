@@ -7,6 +7,7 @@ import { Loading } from '../components/loading'
 import { Section } from '../components/section'
 import { CustomSlider } from '../components/slider'
 import { VideoPlayer } from '../components/video-player'
+import { ActorsCast } from '../components/actors-cast'
 import { Film } from '../interfaces'
 
 export const FilmPage = () => {
@@ -95,7 +96,7 @@ export const FilmPage = () => {
             film.backdrop_url ||
             `http://localhost:9000/cinema-files/movies/${film.movie_id}/backdrop.jpg` ||
             film.poster_url ||
-            '/placeholder-poster.jpg'
+            '/placeholder-poster.svg'
           }
           alt={film.title}
           className="h-full w-full object-cover scale-105 transition-transform duration-700 hover:scale-110"
@@ -112,7 +113,7 @@ export const FilmPage = () => {
       <Section className="-mt-[120px] md:-mt-[150px] lg:-mt-[180px] xl:-mt-[200px] relative z-10">
         <div className="flex gap-6 md:gap-8 lg:gap-12 xl:gap-16 mobile:flex-col">
           <Image
-            src={film.poster_url || '/placeholder-poster.jpg'}
+            src={film.poster_url || '/placeholder-poster.svg'}
             alt={film.title}
             className="h-[250px] md:h-[300px] lg:h-[350px] xl:h-[400px] w-[167px] md:w-[200px] lg:w-[233px] xl:w-[267px] shrink-0 rounded-lg mobile:mx-auto"
           />
@@ -124,12 +125,14 @@ export const FilmPage = () => {
             <p className="text-sm md:text-base lg:text-lg xl:text-xl text-gray-300 leading-relaxed">
               {film.description}
             </p>
-            <button
-              onClick={() => setShowPlayer(!showPlayer)}
-              className="w-fit rounded-lg bg-primary px-4 md:px-6 lg:px-8 xl:px-10 py-2 md:py-3 lg:py-4 text-sm md:text-base lg:text-lg text-white hover:bg-primary/80 transition-colors"
-            >
-              {showPlayer ? 'Скрыть плеер' : 'Смотреть фильм'}
-            </button>
+            <div className="flex gap-4 flex-wrap">
+              <button
+                onClick={() => setShowPlayer(!showPlayer)}
+                className="w-fit rounded-lg bg-primary px-4 md:px-6 lg:px-8 xl:px-10 py-2 md:py-3 lg:py-4 text-sm md:text-base lg:text-lg text-white hover:bg-primary/80 transition-colors"
+              >
+                {showPlayer ? 'Скрыть плеер' : 'Смотреть фильм'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -137,12 +140,17 @@ export const FilmPage = () => {
         {showPlayer && (
           <div className="mt-8">
             <VideoPlayer
-              src={MovieService.getStreamUrl(film.movie_id.toString())}
-              poster={film.poster_url || '/placeholder-poster.jpg'}
+              src={`http://localhost:8001/streaming/${film.movie_id}`}
+              poster={film.poster_url || '/placeholder-poster.svg'}
               className="aspect-video w-full"
             />
           </div>
         )}
+      </Section>
+
+      {/* Actors Cast */}
+      <Section>
+        <ActorsCast movieId={film.movie_id} />
       </Section>
 
       {/* Similar Movies */}

@@ -53,7 +53,7 @@ export const SearchResult = (props: Props) => {
               }}
             >
               <Image
-                src={item.poster_url || '/placeholder-poster.jpg'}
+                src={item.poster_url || '/placeholder-poster.svg'}
                 className="h-[72px] min-w-[102px] rounded-md"
                 alt={item.title}
               />

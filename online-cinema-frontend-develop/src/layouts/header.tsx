@@ -44,7 +44,7 @@ export const Header = () => {
             className="text-2xl font-bold text-primary cursor-pointer"
             onClick={() => navigate('/')}
           >
-            Movie App
+            Absolute Cinema
           </h1>
 
           <div className="search-container relative flex-1 max-w-md">

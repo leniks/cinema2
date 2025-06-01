@@ -3,6 +3,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from main_service.routers.movies_router import router as movies_router
 from main_service.routers.files_router import router as files_router
+from main_service.routers.actors import router as actors_router
+from main_service.routers.streaming_router import router as streaming_router
 from fastapi.responses import JSONResponse, HTMLResponse
 from main_service.services.redis_listener_service import redis_listener
 import asyncio
@@ -166,3 +168,5 @@ def demo_page():
 
 app.include_router(movies_router)
 app.include_router(files_router)
+app.include_router(actors_router)
+app.include_router(streaming_router)

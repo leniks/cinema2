@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from main_service.models.movie_genres import movie_genres
 from main_service.models.user_favorites import user_favorites
 from main_service.models.user_watchlist import user_watchlist
+from main_service.models.movie_actors import movie_actors
 
 from main_service.database import Base, str_uniq, str_null_true
 
@@ -26,6 +27,10 @@ class Movie(Base):
                                                  secondary=movie_genres,
                                                  back_populates="movies",
                                                  lazy='select')
+    actors: Mapped[list["Actor"]] = relationship("Actor",
+                                                 secondary=movie_actors,
+                                                 back_populates="movies",
+                                                 lazy='select')
     favorites_users: Mapped[list["User"]] = relationship("User",
                                                  secondary=user_favorites,
                                                  back_populates="favorites",
@@ -36,8 +41,6 @@ class Movie(Base):
                                                  lazy='select')
     
     def to_dict(self) -> dict:
-        # Добавляем логирование для отладки
-        print(f"DEBUG: Movie {self.id} - trailer_url: {self.trailer_url}")
         return {
             "id": self.id,
             "title": self.title,

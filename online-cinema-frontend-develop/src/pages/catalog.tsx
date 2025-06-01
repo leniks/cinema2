@@ -55,7 +55,7 @@ export const CatalogPage = () => {
                 className="flex flex-col overflow-hidden rounded-lg bg-card"
               >
                 <img
-                  src={movie.poster_url || '/placeholder-poster.jpg'}
+                  src={movie.poster_url || '/placeholder-poster.svg'}
                   alt={movie.title}
                   className="aspect-[2/3] w-full object-cover"
                 />

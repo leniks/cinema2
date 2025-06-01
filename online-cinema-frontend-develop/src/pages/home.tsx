@@ -8,19 +8,14 @@ import { Film } from '../interfaces'
 
 export const HomePage = () => {
   const [topMovies, setTopMovies] = useState<Film[]>([])
-  const [recommendedMovies, setRecommendedMovies] = useState<Film[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
       try {
-        const [top, recommended] = await Promise.all([
-          MovieService.getTopRated(),
-          MovieService.getRecommendations(10),
-        ])
+        const top = await MovieService.getTopRated()
         setTopMovies(top)
-        setRecommendedMovies(recommended)
       } catch (error) {
         console.error('Error fetching data:', error)
       } finally {
@@ -49,20 +44,10 @@ export const HomePage = () => {
         {/* Топ фильмов */}
         <section className="mb-8 md:mb-12 lg:mb-16">
           <h2 className="mb-4 md:mb-6 lg:mb-8 text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold">
-            Топ фильмов
+            Лучшие фильмы
           </h2>
           <CustomSlider movies={topMovies} />
         </section>
-
-        {/* Рекомендации */}
-        {recommendedMovies.length > 0 && (
-          <section className="mb-8 md:mb-12 lg:mb-16">
-            <h2 className="mb-4 md:mb-6 lg:mb-8 text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold">
-              Рекомендуемые фильмы
-            </h2>
-            <CustomSlider movies={recommendedMovies} />
-          </section>
-        )}
       </Container>
     </div>
   )

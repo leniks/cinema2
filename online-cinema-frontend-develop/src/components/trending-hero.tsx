@@ -18,7 +18,7 @@ export const TrendingHero = (props: Props) => {
           props.film.backdrop_url ||
           `http://localhost:9000/cinema-files/movies/${props.film.movie_id}/backdrop.jpg` ||
           props.film.poster_url ||
-          '/placeholder-poster.jpg'
+          '/placeholder-poster.svg'
         }
         alt={props.film.title}
         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
