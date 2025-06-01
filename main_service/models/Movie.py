@@ -14,6 +14,7 @@ from datetime import datetime
 # Модель фильма
 class Movie(Base):
 
+    tmdb_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=True)  # ID из TMDB API
     title: Mapped[str_null_true]
     description: Mapped[str] = mapped_column(Text)
     release_date: Mapped[Date] = mapped_column(Date)
@@ -21,6 +22,7 @@ class Movie(Base):
     rating: Mapped[int] = mapped_column(Integer)  # рейтинг от 1 до 10
     movie_url: Mapped[str_null_true]
     poster_url: Mapped[str_null_true]  # URL постера в MinIO
+    backdrop_url: Mapped[str_null_true]  # URL фонового изображения в MinIO
     trailer_url: Mapped[str_null_true]  # URL трейлера в MinIO
 
     genres: Mapped[list["Genre"]] = relationship("Genre",
@@ -43,6 +45,7 @@ class Movie(Base):
     def to_dict(self) -> dict:
         return {
             "id": self.id,
+            "tmdb_id": self.tmdb_id,
             "title": self.title,
             "description": self.description,
             "release_date": self.release_date.isoformat() if self.release_date else None,
@@ -50,6 +53,7 @@ class Movie(Base):
             "rating": self.rating,
             "movie_url": self.movie_url,
             "poster_url": self.poster_url,
+            "backdrop_url": self.backdrop_url,
             "trailer_url": self.trailer_url,
         }
     

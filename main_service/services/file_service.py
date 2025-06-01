@@ -41,7 +41,7 @@ class FileService:
         try:
             await self.ensure_bucket_exists()
             
-            # Создаем поток из байтов
+            поток из байтов
             file_stream = io.BytesIO(file_data)
             
             # Загружаем файл
@@ -124,5 +124,5 @@ class FileService:
             logger.error(f"Error listing files: {e}")
             return []
 
-# Создаем глобальный экземпляр сервиса
+глобальный экземпляр сервиса
 file_service = FileService() 

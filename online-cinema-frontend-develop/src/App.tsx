@@ -11,7 +11,6 @@ import { AdminPage } from './pages/admin'
 import { SearchResultsPage } from './pages/search-results'
 import { Header } from './components/header'
 import { Footer } from './layouts/footer'
-import { AllMoviesPage } from './pages/all-movies'
 
 export const App = () => {
   useEffect(() => {
@@ -35,7 +34,7 @@ export const App = () => {
                     <main className="flex-1 pt-20">
                       <Routes>
                         <Route index element={<HomePage />} />
-                        <Route path="/movies" element={<AllMoviesPage />} />
+
                         <Route path="/movie/:id" element={<FilmPage />} />
                         <Route path="admin" element={<AdminPage />} />
                         <Route path="search" element={<SearchResultsPage />} />

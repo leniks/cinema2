@@ -19,7 +19,7 @@ class RBMovie:
 
     def to_dict(self) -> dict:
         data = {'id': self.id, 'title': self.title}
-        # Создаем копию словаря, чтобы избежать изменения словаря во время итерации
+        копию словаря, чтобы избежать изменения словаря во время итерации
         filtered_data = {key: value for key, value in data.items() if value is not None}
         return filtered_data
 
@@ -33,7 +33,7 @@ async def get_movies_by_parameters(request_body: RBMovie = Depends()):
     async with async_session_maker() as session:
         query = text("""
             SELECT id, title, description, release_date, duration, rating, 
-                   movie_url, poster_url, trailer_url, created_at, updated_at
+                   movie_url, poster_url, backdrop_url, trailer_url, created_at, updated_at
             FROM movies 
             ORDER BY id
         """)
@@ -43,7 +43,7 @@ async def get_movies_by_parameters(request_body: RBMovie = Depends()):
         logger.info(f"DIRECT SQL: Found {len(rows)} movies")
         if rows:
             first_row = rows[0]
-            logger.info(f"DIRECT SQL: First movie - ID: {first_row[0]}, Title: {first_row[1]}, Trailer: {first_row[8]}")
+            logger.info(f"DIRECT SQL: First movie - ID: {first_row[0]}, Title: {first_row[1]}, Backdrop: {first_row[8]}, Trailer: {first_row[9]}")
         
         # Преобразуем результаты в словари
         movies = []
@@ -57,15 +57,16 @@ async def get_movies_by_parameters(request_body: RBMovie = Depends()):
                 "rating": row[5],
                 "movie_url": row[6],
                 "poster_url": row[7],
-                "trailer_url": row[8],
-                "created_at": row[9].isoformat() if row[9] else None,
-                "updated_at": row[10].isoformat() if row[10] else None,
+                "backdrop_url": row[8],
+                "trailer_url": row[9],
+                "created_at": row[10].isoformat() if row[10] else None,
+                "updated_at": row[11].isoformat() if row[11] else None,
             }
             movies.append(movie_dict)
         
         logger.info(f"DIRECT SQL: Returning {len(movies)} movies")
         if movies:
-            logger.info(f"DIRECT SQL: First movie dict - trailer_url: {movies[0].get('trailer_url')}")
+            logger.info(f"DIRECT SQL: First movie dict - backdrop_url: {movies[0].get('backdrop_url')}, trailer_url: {movies[0].get('trailer_url')}")
         
         return movies
 
@@ -119,7 +120,7 @@ async def get_similar_movies(id: int):
             WITH similar_movies AS (
                 -- Сначала фильмы с точно таким же рейтингом
                 SELECT DISTINCT id, title, description, release_date, duration, rating, 
-                       movie_url, poster_url, trailer_url, created_at, updated_at, 1 as priority
+                       movie_url, poster_url, backdrop_url, trailer_url, created_at, updated_at, 1 as priority
                 FROM movies 
                 WHERE id != :movie_id AND rating = :current_rating
                 
@@ -127,7 +128,7 @@ async def get_similar_movies(id: int):
                 
                 -- Затем фильмы с рейтингом ±1
                 SELECT DISTINCT id, title, description, release_date, duration, rating, 
-                       movie_url, poster_url, trailer_url, created_at, updated_at, 2 as priority
+                       movie_url, poster_url, backdrop_url, trailer_url, created_at, updated_at, 2 as priority
                 FROM movies 
                 WHERE id != :movie_id 
                 AND rating BETWEEN :min_rating AND :max_rating 
@@ -137,13 +138,13 @@ async def get_similar_movies(id: int):
                 
                 -- Затем остальные фильмы
                 SELECT DISTINCT id, title, description, release_date, duration, rating, 
-                       movie_url, poster_url, trailer_url, created_at, updated_at, 3 as priority
+                       movie_url, poster_url, backdrop_url, trailer_url, created_at, updated_at, 3 as priority
                 FROM movies 
                 WHERE id != :movie_id 
                 AND rating NOT BETWEEN :min_rating AND :max_rating
             )
             SELECT id, title, description, release_date, duration, rating, 
-                   movie_url, poster_url, trailer_url, created_at, updated_at
+                   movie_url, poster_url, backdrop_url, trailer_url, created_at, updated_at
             FROM similar_movies
             ORDER BY priority, RANDOM()
             LIMIT 20
@@ -170,9 +171,10 @@ async def get_similar_movies(id: int):
                 "rating": row[5],
                 "movie_url": row[6],
                 "poster_url": row[7],
-                "trailer_url": row[8],
-                "created_at": row[9].isoformat() if row[9] else None,
-                "updated_at": row[10].isoformat() if row[10] else None,
+                "backdrop_url": row[8],
+                "trailer_url": row[9],
+                "created_at": row[10].isoformat() if row[10] else None,
+                "updated_at": row[11].isoformat() if row[11] else None,
             }
             movies.append(movie_dict)
         
@@ -185,7 +187,7 @@ async def get_movie_or_none_by_id(id: int):
     async with async_session_maker() as session:
         query = text("""
             SELECT id, title, description, release_date, duration, rating, 
-                   movie_url, poster_url, trailer_url, created_at, updated_at
+                   movie_url, poster_url, backdrop_url, trailer_url, created_at, updated_at
             FROM movies 
             WHERE id = :movie_id
         """)
@@ -208,9 +210,10 @@ async def get_movie_or_none_by_id(id: int):
             "rating": row[5],
             "movie_url": row[6],
             "poster_url": row[7],
-            "trailer_url": row[8],
-            "created_at": row[9].isoformat() if row[9] else None,
-            "updated_at": row[10].isoformat() if row[10] else None,
+            "backdrop_url": row[8],
+            "trailer_url": row[9],
+            "created_at": row[10].isoformat() if row[10] else None,
+            "updated_at": row[11].isoformat() if row[11] else None,
         }
         
         print(f"DEBUG: Movie dict movie_url: {movie_dict['movie_url']}")

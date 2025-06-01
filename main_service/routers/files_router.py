@@ -25,7 +25,7 @@ async def upload_file(
         # Читаем содержимое файла
         file_content = await file.read()
         
-        # Создаем путь к файлу
+        путь к файлу
         file_path = f"{folder}/{file.filename}"
         
         # Загружаем файл
@@ -56,7 +56,7 @@ async def upload_image_from_url(
 ):
     """Скачивает изображение по URL и загружает в MinIO"""
     try:
-        # Создаем путь к файлу
+        путь к файлу
         file_path = f"{folder}/{filename}"
         
         # Загружаем изображение

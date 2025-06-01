@@ -53,12 +53,7 @@ export const Header = () => {
               >
                 Главная
               </Link>
-              <Link
-                to="/movies"
-                className="text-sm font-medium text-gray-300 transition-colors hover:text-white"
-              >
-                Все фильмы
-              </Link>
+
               {(user?.role === 'admin' || user?.role === 'administrator') && (
                 <Link
                   to="/admin"

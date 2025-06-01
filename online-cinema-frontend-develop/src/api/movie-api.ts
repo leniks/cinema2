@@ -37,7 +37,7 @@ const addAuthInterceptor = (apiInstance: any) => {
 
   apiInstance.interceptors.response.use(
     (response: any) => {
-      console.log(`✨ API Response [${response.config.url}]:`, {
+      console.log(`API Response [${response.config.url}]:`, {
         status: response.status,
         data: response.data,
         headers: response.headers,
@@ -45,15 +45,14 @@ const addAuthInterceptor = (apiInstance: any) => {
       return response
     },
     (error: any) => {
-      console.error(`🔥 API Error [${error.config?.url}]:`, {
+      console.error(`API Error [${error.config?.url}]:`, {
         message: error.message,
         response: error.response?.data,
         status: error.response?.status,
       })
 
-      // Если токен истек или недействителен, разлогиниваем пользователя
       if (error.response?.status === 401) {
-        console.log('🔒 Токен истек или недействителен, выполняется выход...')
+        console.log('Токен истек или недействителен, выполняется выход...')
         localStorage.removeItem('token')
         window.location.href = '/login'
       }
@@ -143,8 +142,8 @@ const convertBackendMovieToFilm = (movie: any): Film => {
     posterUrl = `http://localhost:9000/cinema-files/movies/${movie.id}/poster.svg`
   }
 
-  // Если есть trailer_url (backdrop) из S3, используем его, иначе генерируем fallback
-  let backdropUrl = movie.trailer_url
+  // Если есть backdrop_url из S3, используем его, иначе генерируем fallback
+  let backdropUrl = movie.backdrop_url
   if (!backdropUrl) {
     backdropUrl = `http://localhost:9000/cinema-files/movies/${movie.id}/backdrop.jpg`
   }
@@ -226,7 +225,7 @@ export const MovieService = {
       // Объединяем фильмы с backdrop'ами и остальные
       return [...moviesWithBackdrop, ...movies.slice(10)]
     } catch (error) {
-      console.error('❌ Error fetching movies:', error)
+      console.error('Error fetching movies:', error)
       return []
     }
   },
@@ -241,7 +240,7 @@ export const MovieService = {
       }
       return convertBackendMovieToFilm(response.data)
     } catch (error) {
-      console.error('❌ Error fetching movie:', error)
+      console.error('Error fetching movie:', error)
       return null
     }
   },
@@ -290,7 +289,7 @@ export const MovieService = {
       }
 
       // Получаем все фильмы и фильтруем на клиенте
-      // TODO: Реализовать поиск на бекенде
+
       const response = await mainApi.get<any[]>('/movies/')
       const allMovies = await processMovies(response.data)
 
@@ -382,7 +381,7 @@ export const MovieService = {
 
       return {
         movies,
-        total: movies.length, // TODO: Получать реальное количество с бекенда
+        total: movies.length,
       }
     } catch (error) {
       console.error('❌ Error fetching all movies:', error)

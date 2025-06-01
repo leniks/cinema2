@@ -1,5 +1,5 @@
 from redis.asyncio import Redis
-from auth_service.config import get_redis_settings
+from main_service.config import get_redis_settings
 
 REDIS_SETTINGS = get_redis_settings()
 

@@ -7,11 +7,24 @@ from main_service.routers.actors import router as actors_router
 from main_service.routers.streaming_router import router as streaming_router
 from fastapi.responses import JSONResponse, HTMLResponse
 from main_service.services.redis_listener_service import redis_listener
+from shared.tracing.tracer import get_tracer
+from main_service.database import engine
 import asyncio
 import os
 import io
 
-app = FastAPI()
+# Инициализация трейсинга
+tracer = get_tracer("main_service", "1.0.0")
+tracer.initialize()
+
+app = FastAPI(
+    title="Cinema Main Service",
+    description="Основной сервис онлайн-кинотеатра",
+    version="1.0.0"
+)
+
+# Инструментирование приложения для трейсинга
+tracer.instrument_all(app=app, sqlalchemy_engine=engine)
 
 # Настройка CORS для фронтенда
 app.add_middleware(
@@ -46,6 +59,16 @@ async def startup_event():
 async def shutdown_event():
     """Останавливает прослушивание Redis при завершении работы приложения"""
     await redis_listener.stop_listening()
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint для мониторинга"""
+    from shared.tracing.tracer import get_trace_id
+    return {
+        "status": "healthy",
+        "service": "main_service",
+        "trace_id": get_trace_id()
+    }
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
