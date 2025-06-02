@@ -25,65 +25,64 @@ services:
             - redis_data:/data
         restart: unless-stopped
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
-    container_name: cinema_elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - bootstrap.memory_lock=true
-      - network.host=0.0.0.0
-      - http.port=9200
-      - logger.level=ERROR
-      - logger.org.elasticsearch=ERROR
-      - logger.org.elasticsearch.cluster.service=ERROR
-      - logger.org.elasticsearch.discovery=ERROR
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    ports:
-      - "9200:9200"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-      - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
+        container_name: cinema_elasticsearch
+        environment:
+            - discovery.type=single-node
+            - xpack.security.enabled=false
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - bootstrap.memory_lock=true
+            - network.host=0.0.0.0
+            - http.port=9200
+            - logger.level=ERROR
+            - logger.org.elasticsearch=ERROR
+            - logger.org.elasticsearch.cluster.service=ERROR
+            - logger.org.elasticsearch.discovery=ERROR
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "9200:9200"
+        volumes:
+            - elasticsearch_data:/usr/share/elasticsearch/data
+            - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+        healthcheck:
+            test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
+            interval: 30s
+            timeout: 10s
+            retries: 5
+        restart: unless-stopped
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "10m"
+                max-file: "3"
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.12.1
-    container_name: cinema_kibana
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - XPACK_SECURITY_ENABLED=false
-      - logging.root.level=error
-      - logging.root.appender.console.level=error
-      - logging.root.appender.file.level=error
-    ports:
-      - "5601:5601"
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
+    kibana:
+        image: docker.elastic.co/kibana/kibana:8.12.1
+        container_name: cinema_kibana
+        environment:
+            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+            - XPACK_SECURITY_ENABLED=false
+            - logging.root.level=error
+            - logging.root.appender.console.level=error
+            - logging.root.appender.file.level=error
+        ports:
+            - "5601:5601"
+        depends_on:
+            elasticsearch:
+                condition: service_healthy
+        restart: unless-stopped
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "10m"
+                max-file: "3"
 
     minio:
         image: minio/minio:latest

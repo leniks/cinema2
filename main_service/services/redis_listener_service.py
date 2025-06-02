@@ -48,5 +48,4 @@ class RedisListenerService:
         await self.pubsub.close()
         logger.info("Прослушивание Redis остановлено")
 
-глобальный экземпляр сервиса
 redis_listener = RedisListenerService() 
