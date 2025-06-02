@@ -1,29 +1,29 @@
 services:
-  cinema_db:
-    image: postgres:latest
-    container_name: cinema_db
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: cinema
-      POSTGRES_DB: cinema
-    ports:
-      - "5432:5432"
-    volumes:
-      - cinema_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d cinema"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+    cinema_db:
+        image: postgres:latest
+        container_name: cinema_db
+        environment:
+            POSTGRES_USER: admin
+            POSTGRES_PASSWORD: cinema
+            POSTGRES_DB: cinema
+        ports:
+            - "5432:5432"
+        volumes:
+            - cinema_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U admin -d cinema"]
+            interval: 30s
+            timeout: 10s
+            retries: 5
 
-  redis:
-    image: redis:7.0-alpine
-    container_name: cinema_redis
-    ports:
-      - "6379:6379"  
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
+    redis:
+        image: redis:7.0-alpine
+        container_name: cinema_redis
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis_data:/data
+        restart: unless-stopped
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
@@ -84,91 +84,218 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  auth_service:
-    build:
-      context: .
-      dockerfile: auth_service/Dockerfile
-    container_name: auth_service
-    environment:
-      - DB_HOST=cinema_db
-      - DB_PORT=5432
-      - DB_NAME=cinema
-      - DB_USER=admin
-      - DB_PASSWORD=cinema
-      - SECRET_KEY=your-secret-key-here
-      - ALGORITHM=HS256
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - ELASTICSEARCH_HOST=elasticsearch
-      - ELASTICSEARCH_PORT=9200
-      - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=elastic
-      - KIBANA_HOST=kibana
-      - KIBANA_PORT=5601
-    ports:
-      - "8000:8000"
-    depends_on:
-      cinema_db:
-        condition: service_healthy
-    restart: unless-stopped
 
-  main_service:
-    build:
-      context: .
-      dockerfile: main_service/Dockerfile
-    container_name: main_service
-    environment:
-      - DB_HOST=cinema_db
-      - DB_PORT=5432
-      - DB_NAME=cinema
-      - DB_USER=admin
-      - DB_PASSWORD=cinema
-      - SECRET_KEY=your-secret-key-here
-      - ALGORITHM=HS256
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - ELASTICSEARCH_HOST=elasticsearch
-      - ELASTICSEARCH_PORT=9200
-      - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=elastic
-      - KIBANA_HOST=kibana
-      - KIBANA_PORT=5601
-    ports:
-      - "8001:8001"
-    depends_on:
-      cinema_db:
-        condition: service_healthy
-    restart: unless-stopped
+    minio:
+        image: minio/minio:latest
+        container_name: cinema_minio
+        environment:
+            - MINIO_ROOT_USER=minioadmin
+            - MINIO_ROOT_PASSWORD=minioadmin123
+        ports:
+            - "9000:9000"
+            - "9001:9001"
+        volumes:
+            - minio_data:/data
+        command: server /data --console-address ":9001"
+        healthcheck:
+            test:
+                ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+            interval: 30s
+            timeout: 20s
+            retries: 3
+        restart: unless-stopped
 
-  log_service:
-    build:
-      context: .
-      dockerfile: log_service/Dockerfile
-    container_name: log_service
-    environment:
-      - DB_HOST=cinema_db
-      - DB_PORT=5432
-      - DB_NAME=cinema
-      - DB_USER=admin
-      - DB_PASSWORD=cinema
-      - SECRET_KEY=your-secret-key-here
-      - ALGORITHM=HS256
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - ELASTICSEARCH_HOST=elasticsearch
-      - ELASTICSEARCH_PORT=9200
-      - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=elastic
-      - KIBANA_HOST=kibana
-      - KIBANA_PORT=5601
-    ports:
-      - "8002:8002"
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    restart: unless-stopped
+    jaeger:
+        image: jaegertracing/all-in-one:latest
+        container_name: cinema_jaeger
+        environment:
+            - COLLECTOR_OTLP_ENABLED=true
+            - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+        ports:
+            - "16686:16686" # Jaeger UI
+            - "14268:14268" # HTTP collector
+            - "14250:14250" # gRPC collector
+            - "4317:4317" # OTLP gRPC receiver
+            - "4318:4318" # OTLP HTTP receiver
+            - "9411:9411" # Zipkin compatible endpoint
+        restart: unless-stopped
+
+    auth_service:
+        build:
+            context: .
+            dockerfile: auth_service/Dockerfile
+        container_name: auth_service
+        environment:
+            - DB_HOST=cinema_db
+            - DB_PORT=5432
+            - DB_NAME=cinema
+            - DB_USER=admin
+            - DB_PASSWORD=cinema
+            - SECRET_KEY=your-secret-key-here
+            - ALGORITHM=HS256
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
+            - ELASTICSEARCH_HOST=elasticsearch
+            - ELASTICSEARCH_PORT=9200
+            - ELASTICSEARCH_USERNAME=elastic
+            - ELASTICSEARCH_PASSWORD=elastic
+            - KIBANA_HOST=kibana
+            - KIBANA_PORT=5601
+            - MINIO_ENDPOINT=minio:9000
+            - MINIO_ACCESS_KEY=minioadmin
+            - MINIO_SECRET_KEY=minioadmin123
+            - MINIO_BUCKET=cinema-files
+            - JAEGER_OTLP_ENDPOINT=http://jaeger:4317
+            - ENVIRONMENT=development
+        ports:
+            - "8000:8000"
+        depends_on:
+            cinema_db:
+                condition: service_healthy
+            minio:
+                condition: service_healthy
+            jaeger:
+                condition: service_started
+        restart: unless-stopped
+
+    main_service:
+        build:
+            context: .
+            dockerfile: main_service/Dockerfile
+        container_name: main_service
+        environment:
+            - DB_HOST=cinema_db
+            - DB_PORT=5432
+            - DB_NAME=cinema
+            - DB_USER=admin
+            - DB_PASSWORD=cinema
+            - SECRET_KEY=your-secret-key-here
+            - ALGORITHM=HS256
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
+            - ELASTICSEARCH_HOST=elasticsearch
+            - ELASTICSEARCH_PORT=9200
+            - ELASTICSEARCH_USERNAME=elastic
+            - ELASTICSEARCH_PASSWORD=elastic
+            - KIBANA_HOST=kibana
+            - KIBANA_PORT=5601
+            - MINIO_ENDPOINT=minio:9000
+            - MINIO_ACCESS_KEY=minioadmin
+            - MINIO_SECRET_KEY=minioadmin123
+            - MINIO_BUCKET=cinema-files
+            - JAEGER_OTLP_ENDPOINT=http://jaeger:4317
+            - ENVIRONMENT=development
+        ports:
+            - "8001:8001"
+        volumes:
+            - ./static:/app/static
+        depends_on:
+            cinema_db:
+                condition: service_healthy
+            minio:
+                condition: service_healthy
+            jaeger:
+                condition: service_started
+        restart: unless-stopped
+
+    log_service:
+        build:
+            context: .
+            dockerfile: log_service/Dockerfile
+        container_name: log_service
+        environment:
+            - DB_HOST=cinema_db
+            - DB_PORT=5432
+            - DB_NAME=cinema
+            - DB_USER=admin
+            - DB_PASSWORD=cinema
+            - SECRET_KEY=your-secret-key-here
+            - ALGORITHM=HS256
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
+            - ELASTICSEARCH_HOST=elasticsearch
+            - ELASTICSEARCH_PORT=9200
+            - ELASTICSEARCH_USERNAME=elastic
+            - ELASTICSEARCH_PASSWORD=elastic
+            - KIBANA_HOST=kibana
+            - KIBANA_PORT=5601
+            - MINIO_ENDPOINT=minio:9000
+            - MINIO_ACCESS_KEY=minioadmin
+            - MINIO_SECRET_KEY=minioadmin123
+            - MINIO_BUCKET=cinema-files
+            - JAEGER_OTLP_ENDPOINT=http://jaeger:4317
+            - ENVIRONMENT=development
+        ports:
+            - "8002:8002"
+        depends_on:
+            elasticsearch:
+                condition: service_healthy
+            minio:
+                condition: service_healthy
+            jaeger:
+                condition: service_started
+        restart: unless-stopped
+
+    etl_service:
+        build:
+            context: .
+            dockerfile: etl_service/Dockerfile
+        container_name: etl_service
+        environment:
+            - DB_HOST=cinema_db
+            - DB_PORT=5432
+            - DB_NAME=cinema
+            - DB_USER=admin
+            - DB_PASSWORD=cinema
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
+            - ELASTICSEARCH_HOST=elasticsearch
+            - ELASTICSEARCH_PORT=9200
+            - MINIO_ENDPOINT=minio:9000
+            - MINIO_ACCESS_KEY=minioadmin
+            - MINIO_SECRET_KEY=minioadmin123
+            - MINIO_BUCKET=cinema-files
+            - TMDB_API_KEY=4575913dcaafdb1efd57fbefa5a773cf
+            - ETL_BATCH_SIZE=10
+            - ETL_MAX_RETRIES=3
+            - ETL_RETRY_DELAY=5
+            - JAEGER_OTLP_ENDPOINT=http://jaeger:4317
+            - ENVIRONMENT=development
+        ports:
+            - "8003:8003"
+        depends_on:
+            cinema_db:
+                condition: service_healthy
+            redis:
+                condition: service_started
+            elasticsearch:
+                condition: service_healthy
+            minio:
+                condition: service_healthy
+            jaeger:
+                condition: service_started
+        restart: unless-stopped
+
+    frontend:
+        build:
+            context: ./online-cinema-frontend-develop
+            dockerfile: Dockerfile
+        container_name: cinema_frontend
+        environment:
+            - REACT_APP_API_URL=http://localhost:8001
+            - REACT_APP_AUTH_URL=http://localhost:8000
+            - REACT_APP_MINIO_URL=http://localhost:9000
+            - REACT_APP_MINIO_BUCKET=cinema-files
+        ports:
+            - "3000:80"
+        depends_on:
+            - main_service
+            - auth_service
+            - minio
+        restart: unless-stopped
 
 volumes:
-  cinema_data:
-  redis_data:
-  elasticsearch_data:
+    cinema_data:
+    redis_data:
+    elasticsearch_data:
+    minio_data:

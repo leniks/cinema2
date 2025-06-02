@@ -14,7 +14,10 @@ class SMovie(BaseModel):
     release_date: date = Field(default=None, description="Дата выхода фильма в формате ГГГГ-ММ-ДД")
     duration: int = Field(default=None, ge=0, description="Продолжительность в минутах")
     rating: int = Field(default=None, ge=1, le=10, description="Рейтинг фильма от 1 до 10")
+    movie_url: Optional[str] = Field(default=None, description="URL видео файла")
     poster_url: Optional[str] = Field(default=None, description="URL постера фильма")
+    backdrop_url: Optional[str] = Field(default=None, description="URL фонового изображения фильма")
+    trailer_url: Optional[str] = Field(default=None, description="URL трейлера фильма")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
